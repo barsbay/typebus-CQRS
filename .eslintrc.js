@@ -1,0 +1,40 @@
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: 'tsconfig.json',
+    tsconfigRootDir: __dirname,
+    sourceType: 'module',
+  },
+  plugins: ['@typescript-eslint'],
+  extends: [
+    'eslint:recommended',
+    '@typescript-eslint/recommended',
+  ],
+  root: true,
+  env: {
+    node: true,
+    jest: true,
+  },
+  ignorePatterns: ['.eslintrc.js', 'dist/', 'node_modules/', 'coverage/'],
+  rules: {
+    '@typescript-eslint/interface-name-prefix': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'warn',
+    '@typescript-eslint/explicit-module-boundary-types': 'warn',
+    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/prefer-const': 'error',
+    '@typescript-eslint/no-var-requires': 'error',
+    'prefer-const': 'error',
+    'no-var': 'error',
+    'no-console': 'off', // Разрешаем console.log в библиотеке
+    'no-debugger': 'error',
+    'no-duplicate-imports': 'error',
+    'no-unused-expressions': 'error',
+    'prefer-template': 'error',
+    'object-shorthand': 'error',
+    'arrow-spacing': 'error',
+    'comma-dangle': ['error', 'never'],
+    'quotes': ['error', 'single', { 'avoidEscape': true }],
+    'semi': ['error', 'always']
+  },
+};
