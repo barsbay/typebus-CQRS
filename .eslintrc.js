@@ -26,7 +26,7 @@ module.exports = {
     '@typescript-eslint/no-var-requires': 'error',
     'prefer-const': 'error',
     'no-var': 'error',
-    'no-console': 'off', // Разрешаем console.log в библиотеке
+    'no-console': 'off', 
     'no-debugger': 'error',
     'no-duplicate-imports': 'error',
     'no-unused-expressions': 'error',

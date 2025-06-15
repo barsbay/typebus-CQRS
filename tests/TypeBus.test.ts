@@ -1,4 +1,4 @@
-// tests/TypeBus.test.ts - Основные тесты TypeBus
+
 import { TypeBus, createCommand, createQuery, createEventHandler } from '../src';
 
 describe('TypeBus', () => {
@@ -275,7 +275,7 @@ describe('TypeBus', () => {
         bus,
         'User.CreateUser',
         async (_data, aggregateId) => {
-          // TypeScript должен выводить правильные типы
+
           expect(typeof _data.name).toBe('string');
           expect(typeof _data.email).toBe('string');
           expect(typeof _data.password).toBe('string');
@@ -294,7 +294,7 @@ describe('TypeBus', () => {
         'user-123'
       );
 
-      // TypeScript должен выводить правильный тип результата
+
       expect(typeof result.userId).toBe('string');
       expect(Array.isArray(result.events)).toBe(true);
     });
