@@ -1,7 +1,7 @@
 // build-test.ts - Тест сборки проекта
 import { createTypeBus, createCommand, createQuery, VERSION } from './index';
 
-console.log('🔧 Тестирование сборки TypeBus...');
+console.log('🔧 Тестирование сборки TypeBus-CQRS...');
 
 // Проверяем все основные импорты
 console.log('✅ createTypeBus импортирован:', typeof createTypeBus === 'function');
@@ -10,7 +10,7 @@ console.log('✅ createQuery импортирован:', typeof createQuery === 
 console.log('✅ VERSION импортирован:', VERSION);
 
 /**
- * Runs a quick test of the main TypeBus functionality and logs the results.
+ * Runs a quick test of the main TypeBus-CQRS functionality and logs the results.
  * @async
  * @returns {Promise<void>}
  */
@@ -18,7 +18,7 @@ async function quickTest() {
   console.log('\n🧪 Quick functionality test...');
   
   const bus = createTypeBus({ enableLogging: false });
-  console.log('✅ TypeBus создан успешно');
+  console.log('✅ TypeBus-CQRS создан успешно');
   
   // Тест создания команды с правильными типами
   const testCommand = createCommand(
@@ -59,7 +59,7 @@ async function quickTest() {
     console.log('✅ Query executed:', queryResult);
     
     console.log('\n🎉 Все проверки прошли успешно!');
-    console.log(`📦 TypeBus версия: ${VERSION}`);
+    console.log(`📦 TypeBus-CQRS версия: ${VERSION}`);
     
     // Проверяем статистику
     const stats = bus.getStats();

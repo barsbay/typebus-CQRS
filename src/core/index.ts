@@ -1,5 +1,5 @@
 /**
- * Exports core modules of TypeBus.
+ * Exports core modules of TypeBus-CQRS.
  */
 export * from './MessageFactory';
 export * from './TypeBus';

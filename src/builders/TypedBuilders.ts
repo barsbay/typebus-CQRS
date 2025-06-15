@@ -16,13 +16,13 @@ import {
 import { TypeBus } from '../core/TypeBus';
 
 /** ================================================================================
- * Builder for creating and registering command handlers with TypeBus.
+ * Builder for creating and registering command handlers with TypeBus-CQRS.
     ================================================================================  */
 export class TypedCommandBuilder {
   /**
    * Creates and registers a command handler.
    * @template T
-   * @param {TypeBus} bus - The TypeBus instance.
+   * @param {TypeBus} bus - The TypeBus-CQRS instance.
    * @param {T} commandType - The command type.
    * @param {(data: CommandData<T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<T>>} handlerLogic - The handler logic.
    * @returns {object} Command executor and handler meta.
@@ -57,13 +57,13 @@ export class TypedCommandBuilder {
 }
 
 /** ================================================================================
- * Builder for creating and registering query handlers with TypeBus.
+ * Builder for creating and registering query handlers with TypeBus-CQRS.
     ================================================================================  */
 export class TypedQueryBuilder {
   /**
    * Creates and registers a query handler.
    * @template T
-   * @param {TypeBus} bus - The TypeBus instance.
+   * @param {TypeBus} bus - The TypeBus-CQRS instance.
    * @param {T} queryType - The query type.
    * @param {(params: QueryParams<T>, metadata?: Record<string, any>) => Promise<QueryResult<T>>} handlerLogic - The handler logic.
    * @returns {object} Query executor and handler meta.
@@ -96,13 +96,13 @@ export class TypedQueryBuilder {
 }
 
 /** ================================================================================
- * Builder for creating and registering event handlers with TypeBus.
+ * Builder for creating and registering event handlers with TypeBus-CQRS.
     ================================================================================  */
 export class TypedEventBuilder {
   /**
    * Creates and registers an event handler.
    * @template T
-   * @param {TypeBus} bus - The TypeBus instance.
+   * @param {TypeBus} bus - The TypeBus-CQRS instance.
    * @param {T} eventType - The event type.
    * @param {(data: EventData<T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} handlerLogic - The handler logic.
    * @returns {object} Event publisher and handler meta.
@@ -307,7 +307,7 @@ export class FluentBuilder {
 /** ================================================================================
  * Utility function to create a command builder.
  * @template T
- * @param {TypeBus} bus - The TypeBus instance.
+ * @param {TypeBus} bus - The TypeBus-CQRS instance.
  * @param {T} commandType - The command type.
  * @param {(data: CommandData<T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<T>>} handlerLogic - The handler logic.
  * @returns {object}
@@ -327,7 +327,7 @@ export function createCommand<T extends CommandType>(
 /** ================================================================================
  * Utility function to create a query builder.
  * @template T
- * @param {TypeBus} bus - The TypeBus instance.
+ * @param {TypeBus} bus - The TypeBus-CQRS instance.
  * @param {T} queryType - The query type.
  * @param {(params: QueryParams<T>, metadata?: Record<string, any>) => Promise<QueryResult<T>>} handlerLogic - The handler logic.
  * @returns {object}
@@ -343,7 +343,7 @@ export function createQuery<T extends QueryType>(
 /** ================================================================================
  * Utility function to create an event handler builder.
  * @template T
- * @param {TypeBus} bus - The TypeBus instance.
+ * @param {TypeBus} bus - The TypeBus-CQRS instance.
  * @param {T} eventType - The event type.
  * @param {(data: EventData<T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} handlerLogic - The handler logic.
  * @returns {object}
@@ -362,8 +362,8 @@ export function createEventHandler<T extends EventType>(
 }
 
 /** ================================================================================
- * Utility function to create a fluent builder for TypeBus.
- * @param {TypeBus} bus - The TypeBus instance.
+ * Utility function to create a fluent builder for TypeBus-CQRS.
+ * @param {TypeBus} bus - The TypeBus-CQRS instance.
  * @returns {FluentBuilder}
    ================================================================================  */
 export function createFluentBuilder(bus: TypeBus) {

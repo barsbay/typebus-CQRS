@@ -1,4 +1,4 @@
-//[TYPEBUS]
+//[TYPEBUS-CQRS]
 //|_|_|_|_|
 // o     o
 import { IMiddleware, IMessage } from '../types';
@@ -21,7 +21,7 @@ export interface LoggingOptions {
 }
 
 /**
- * Middleware for logging message execution in TypeBus.
+ * Middleware for logging message execution in TypeBus-CQRS.
  * @implements {IMiddleware}
  */
 export class LoggingMiddleware implements IMiddleware {

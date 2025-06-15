@@ -1,4 +1,4 @@
-// core/TypeBus.ts - Главный класс библиотеки
+// core/TypeBus.ts - Главный класс библиотеки TypeBus-CQRS
 import {
   IMessageBus,
   IMessageHandler,
@@ -17,7 +17,7 @@ import {
 import { MessageFactory } from './MessageFactory';
 
 /**
- * Main class of the TypeBus library. Implements the IMessageBus interface.
+ * Main class of the TypeBus-CQRS library. Implements the IMessageBus interface.
  * Handles registration and execution of commands, queries, and events with middleware support.
  * @implements {IMessageBus}
  */

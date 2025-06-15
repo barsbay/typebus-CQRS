@@ -24,7 +24,7 @@ export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
 /**
- * Configuration options for TypeBus.
+ * Configuration options for TypeBus-CQRS.
  * @typedef {Object} TypeBusConfig
  * @property {boolean} [enableMetrics]
  * @property {boolean} [enableLogging]
@@ -46,7 +46,7 @@ export interface TypeBusConfig {
 import { IMessageBus } from './Messages';
 
 /**
- * Interface for TypeBus modules.
+ * Interface for TypeBus-CQRS modules.
  * @typedef {Object} ITypeBusModule
  * @property {string} name
  * @property {string} [version]
@@ -59,7 +59,7 @@ export interface ITypeBusModule {
 }
 
 /**
- * Interface for TypeBus extensions.
+ * Interface for TypeBus-CQRS extensions.
  * @typedef {Object} ITypeBusExtension
  * @property {string} name
  * @property {(bus: IMessageBus) => void} install

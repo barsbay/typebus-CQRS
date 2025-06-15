@@ -1,7 +1,6 @@
-
 import { TypeBus, createCommand, createQuery, createEventHandler } from '../src';
 
-describe('TypeBus', () => {
+describe('TypeBus-CQRS', () => {
   let bus: TypeBus;
 
   beforeEach(() => {

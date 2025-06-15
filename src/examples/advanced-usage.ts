@@ -7,7 +7,7 @@ import { createTypeBus, createFluentBuilder } from '../index';
 
 /**
  * Helper to create a fluent builder for the given bus instance.
- * @param {any} bus - The TypeBus instance
+ * @param {any} bus - The TypeBus-CQRS instance
  * @returns {ReturnType<typeof createFluentBuilder>}
  */
 function fluent(bus: any) {
@@ -15,7 +15,7 @@ function fluent(bus: any) {
 }
 
 /**
- * Advanced usage example for TypeBus: demonstrates fluent API and batch operations.
+ * Advanced usage example for TypeBus-CQRS: demonstrates fluent API and batch operations.
  * @async
  * @returns {Promise<void>}
  */

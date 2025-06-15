@@ -1,5 +1,5 @@
 /**
- * Basic usage example for TypeBus: demonstrates commands, queries, and event handlers.
+ * Basic usage example for TypeBus-CQRS: demonstrates commands, queries, and event handlers.
  * @async
  * @returns {Promise<void>}
  */
@@ -7,19 +7,19 @@
 import { createTypeBus, createCommand, createQuery, createEventHandler } from '../index';
 
 /**
- * Main demonstration function for TypeBus basic usage.
+ * Main demonstration function for TypeBus-CQRS basic usage.
  * Shows how to create a bus, register commands, queries, and event handlers, and execute them.
  */
 async function basicExample() {
-  console.log('🚀 TypeBus Basic Usage Example\n');
+  console.log('🚀 TypeBus-CQRS Basic Usage Example\n');
 
-  // 1. Create TypeBus instance with logging
+  // 1. Create TypeBus-CQRS instance with logging
   const bus = createTypeBus({
     enableLogging: true,
     logLevel: 'info'
   });
 
-  console.log('📦 Creating commands, queries, and event handlers...\n');
+  console.log('�� Creating commands, queries, and event handlers...\n');
 
   // 2. Create a command with automatic registration
   const CreateUser = createCommand(bus, 'User.CreateUser', async (data, aggregateId, metadata) => {
@@ -127,7 +127,7 @@ async function basicExample() {
     }
 
     // Show statistics
-    console.log('\n📊 TypeBus Stats:');
+    console.log('\n📊 TypeBus-CQRS Stats:');
     console.log(bus.getStats());
 
     console.log('\n🎯 Registered Handlers:');

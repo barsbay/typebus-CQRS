@@ -13,7 +13,7 @@ import {
 console.log('✅ All imports from index successful!');
 
 /**
- * Runs a quick test of the main TypeBus imports and logs the results.
+ * Runs a quick test of the main TypeBus-CQRS imports and logs the results.
  * @async
  * @returns {Promise<void>}
  */
@@ -21,7 +21,7 @@ async function quickTest() {
   console.log('\n🧪 Quick functionality test...');
   
   const bus = createTypeBus({ enableLogging: false });
-  console.log('✅ TypeBus created with factory');
+  console.log('✅ TypeBus-CQRS created with factory');
   
   // Тест создания команды с правильным типом
   const TestCommand = createCommand(
@@ -60,7 +60,7 @@ async function quickTest() {
     console.log('✅ Query executed:', queryResult);
     
     console.log('\n🎉 All functionality tests passed!');
-    console.log(`📦 TypeBus version: ${VERSION}`);
+    console.log(`📦 TypeBus-CQRS version: ${VERSION}`);
     
     // Проверяем статистику
     const stats = bus.getStats();

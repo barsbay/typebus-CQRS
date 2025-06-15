@@ -1,5 +1,5 @@
-# TypeBus
-[TYPEBUS]
+# TypeBus-CQRS
+[TYPEBUS-CQRS]
 |_|_|_|_|
  o     o
 
@@ -11,7 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎯 Why TypeBus?
+## 🎯 Why TypeBus-CQRS?
 
 **Problem with existing CQRS libraries:**
 - 🤯 Too much boilerplate code
@@ -19,7 +19,7 @@
 - 🔨 Separate command and handler creation
 - 🔧 Manual registration required
 
-**TypeBus solution:**
+**TypeBus-CQRS solution:**
 - ✅ **One import** for everything
 - ✅ **Command + handler** in a single line
 - ✅ **Auto-registration** on creation
@@ -50,7 +50,7 @@ yarn add typebus-cqrs reflect-metadata
 ```typescript
 import { createTypeBus, createCommand, createQuery } from 'typebus-cqrs';
 
-// 1. Create TypeBus instance
+// 1. Create TypeBus-CQRS instance
 const bus = createTypeBus();
 
 // 2. Create command with auto-registration (one line!)
@@ -246,7 +246,7 @@ const user = await userHandlers.getUser.execute({ userId: 'user-123' });
 
 ### Middleware
 
-TypeBus supports middleware for cross-cutting concerns:
+TypeBus-CQRS supports middleware for cross-cutting concerns:
 
 ```typescript
 import { withLogging } from 'typebus-cqrs';
@@ -278,7 +278,7 @@ bus.use({
 
 ### Type Safety
 
-TypeBus provides full type safety through TypeScript:
+TypeBus-CQRS provides full type safety through TypeScript:
 
 ```typescript
 // 1. Define your message types
@@ -312,7 +312,7 @@ await CreateUser.execute(
 
 ## 🧪 Testing
 
-TypeBus is designed to be easily testable:
+TypeBus-CQRS is designed to be easily testable:
 
 ```typescript
 describe('User Commands', () => {
@@ -402,8 +402,8 @@ export class UserService {
 
 ## 📊 Comparison with Other Libraries
 
-| Feature | TypeBus | NestJS CQRS | Wolkenkit | EventStore |
-|---------|---------|-------------|-----------|------------|
+| Feature | TypeBus-CQRS | NestJS CQRS | Wolkenkit | EventStore |
+|---------|-------------|-------------|-----------|------------|
 | **Simplicity** | ✅ 10/10 | ❌ 6/10 | ❌ 4/10 | ❌ 5/10 |
 | **Minimal Code** | ✅ 10/10 | ❌ 4/10 | ❌ 3/10 | ❌ 4/10 |
 | **Type Safety** | ✅ 9/10 | ✅ 9/10 | ⚠️ 7/10 | ⚠️ 7/10 |
@@ -437,7 +437,7 @@ const command = new CreateUserCommand('John', 'john@example.com');
 await this.commandBus.execute(command);
 ```
 
-### After (TypeBus):
+### After (TypeBus-CQRS):
 ```typescript
 // 1. One line creates command + handler + registration
 const CreateUser = createCommand(bus, 'User.CreateUser', async (data, id) => {
@@ -448,7 +448,7 @@ const CreateUser = createCommand(bus, 'User.CreateUser', async (data, id) => {
 await CreateUser.execute({ name: 'John', email: 'john@example.com' }, 'user-123');
 ```
 
-**Result: 70% less code, 100% type safety, zero manual registration.**
+**TypeBus-CQRS** - Because CQRS should be simple, not complicated. 🚌✨
 
 ## 🛠️ Advanced Features
 
@@ -554,8 +554,6 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ---
 
-**TypeBus** - Because CQRS should be simple, not complicated. 🚌✨
-
 ## ⚡ Setup & Usage
 
 ### 1. Install Dependencies
@@ -617,7 +615,7 @@ npm run example:basic
 You should see something like:
 
 ```
-🚀 TypeBus Basic Usage Example
+🚀 TypeBus-CQRS Basic Usage Example
 
 📦 Creating commands, queries, and event handlers...
 

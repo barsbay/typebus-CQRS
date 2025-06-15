@@ -1,4 +1,4 @@
-# 🚀 TypeBus Setup Instructions
+# 🚀 TypeBus-CQRS Setup Instructions
 
 ## 📋 What to Do
 
@@ -61,7 +61,7 @@ npm run example:basic
 You should see something like:
 
 ```
-🚀 TypeBus Basic Usage Example
+🚀 TypeBus-CQRS Basic Usage Example
 
 📦 Creating commands, queries, and event handlers...
 
@@ -81,7 +81,7 @@ You should see something like:
 ## 📁 Project Structure
 
 ```
-typebus/
+typebus-cqrs/
 ├── src/                          # Source code
 │   ├── types/                    # TypeScript types
 │   │   ├── MessageMaps.ts        # Message mapping for type safety
