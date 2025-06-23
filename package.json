@@ -1,6 +1,6 @@
 {
   "name": "typebus-cqrs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Simple, type-safe CQRS library with auto-registration and minimal boilerplate (typebus-cqrs)",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -27,6 +27,7 @@
     "prepublishOnly": "npm run clean && npm run build && npm test",
     "example:basic": "ts-node src/examples/basic-usage.ts",
     "example:advanced": "ts-node src/examples/advanced-usage.ts",
+    "example:extensible": "ts-node src/examples/extensible-types-example.ts",
     "test:imports": "ts-node src/test-imports.ts",
     "test:build": "ts-node src/build-test.ts"
   },

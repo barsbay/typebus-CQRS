@@ -55,6 +55,9 @@ Thumbs.db
 # Documentation
 docs/
 
+# Examples
+examples/
+
 # Temporary files
 tmp/
 temp/

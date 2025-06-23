@@ -27,33 +27,36 @@ export interface IMessage {
 
 /**
  * Interface for command messages.
- * @template T
- * @typedef {IMessage & { type: T, data: CommandData<T>, aggregateId: string }} ICommand
+ * @template T - Command map type
+ * @template K - Command type key
+ * @typedef {IMessage & { type: K, data: CommandData<T, K>, aggregateId: string }} ICommand
  */
-export interface ICommand<T extends CommandType = CommandType> extends IMessage {
-  readonly type: T;
-  readonly data: CommandData<T>;
+export interface ICommand<T extends Record<string, any> = any, K extends keyof T & string = keyof T & string> extends IMessage {
+  readonly type: K;
+  readonly data: CommandData<T, K>;
   readonly aggregateId: string;
 }
 
 /**
  * Interface for query messages.
- * @template T
- * @typedef {IMessage & { type: T, params: QueryParams<T> }} IQuery
+ * @template T - Query map type
+ * @template K - Query type key
+ * @typedef {IMessage & { type: K, params: QueryParams<T, K> }} IQuery
  */
-export interface IQuery<T extends QueryType = QueryType> extends IMessage {
-  readonly type: T;
-  readonly params: QueryParams<T>;
+export interface IQuery<T extends Record<string, any> = any, K extends keyof T & string = keyof T & string> extends IMessage {
+  readonly type: K;
+  readonly params: QueryParams<T, K>;
 }
 
 /**
  * Interface for event messages.
- * @template T
- * @typedef {IMessage & { type: T, data: EventData<T>, aggregateId: string, version: number }} IEvent
+ * @template T - Event map type
+ * @template K - Event type key
+ * @typedef {IMessage & { type: K, data: EventData<T, K>, aggregateId: string, version: number }} IEvent
  */
-export interface IEvent<T extends EventType = EventType> extends IMessage {
-  readonly type: T;
-  readonly data: EventData<T>;
+export interface IEvent<T extends Record<string, any> = any, K extends keyof T & string = keyof T & string> extends IMessage {
+  readonly type: K;
+  readonly data: EventData<T, K>;
   readonly aggregateId: string;
   readonly version: number;
 }
@@ -82,30 +85,32 @@ export interface IMiddleware {
 
 /**
  * Interface for the message bus.
+ * @template TCommandMap - Command map type
+ * @template TQueryMap - Query map type
+ * @template TEventMap - Event map type
  * @typedef {Object} IMessageBus
- * @property {(type: T, data: CommandData<T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<T>>} executeCommand
- * @property {(type: T, params: QueryParams<T>, metadata?: Record<string, any>) => Promise<QueryResult<T>>} executeQuery
- * @property {(type: T, data: EventData<T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} publishEvent
- * @property {(middleware: IMiddleware) => void} use
- * @property {() => void} clear
  */
-export interface IMessageBus {
-  executeCommand<T extends CommandType>(
+export interface IMessageBus<
+  TCommandMap extends Record<string, any> = any,
+  TQueryMap extends Record<string, any> = any,
+  TEventMap extends Record<string, any> = any
+> {
+  executeCommand<T extends CommandType<TCommandMap>>(
     type: T,
-    data: CommandData<T>,
+    data: CommandData<TCommandMap, T>,
     aggregateId: string,
     metadata?: Record<string, any>
-  ): Promise<CommandResult<T>>;
+  ): Promise<CommandResult<TCommandMap, T>>;
   
-  executeQuery<T extends QueryType>(
+  executeQuery<T extends QueryType<TQueryMap>>(
     type: T,
-    params: QueryParams<T>,
+    params: QueryParams<TQueryMap, T>,
     metadata?: Record<string, any>
-  ): Promise<QueryResult<T>>;
+  ): Promise<QueryResult<TQueryMap, T>>;
   
-  publishEvent<T extends EventType>(
+  publishEvent<T extends EventType<TEventMap>>(
     type: T,
-    data: EventData<T>,
+    data: EventData<TEventMap, T>,
     aggregateId: string,
     version: number,
     metadata?: Record<string, any>

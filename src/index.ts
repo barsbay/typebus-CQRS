@@ -11,4 +11,4 @@ export * from './factory';
  * Library version string.
  * @type {string}
  */
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
