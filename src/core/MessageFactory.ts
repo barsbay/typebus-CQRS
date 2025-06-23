@@ -1,4 +1,3 @@
-
 import {
   ICommand,
   IQuery,
@@ -12,89 +11,93 @@ import {
 } from '../types';
 
 /**
- * Factory for creating type-safe command, query, and event messages.
+ * Factory class for creating message instances.
+ * Handles the creation of commands, queries, and events with proper typing.
  */
 export class MessageFactory {
   /**
-   * Generates a unique message ID.
-   * @returns {string}
+   * Creates a command message.
+   * @template TCommandMap - Command map type
+   * @template T - Command type key
+   * @param {T} type - The command type.
+   * @param {CommandData<TCommandMap, T>} data - The command data.
+   * @param {string} aggregateId - The aggregate ID.
+   * @param {Record<string, any>} [metadata] - Optional metadata.
+   * @returns {ICommand<TCommandMap, T>} The created command.
    */
-  private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  /**
-   * Creates a command message object.
-   * @template T
-   * @param {T} type - Command type
-   * @param {CommandData<T>} data - Command data
-   * @param {string} aggregateId - Aggregate ID
-   * @param {Record<string, any>} [metadata] - Optional metadata
-   * @returns {ICommand<T>}
-   */
-  createCommand<T extends CommandType>(
+  createCommand<TCommandMap extends Record<string, any> = any, T extends CommandType<TCommandMap> = CommandType<TCommandMap>>(
     type: T,
-    data: CommandData<T>,
+    data: CommandData<TCommandMap, T>,
     aggregateId: string,
     metadata?: Record<string, any>
-  ): ICommand<T> {
+  ): ICommand<TCommandMap, T> {
     return {
       id: this.generateId(),
       type,
+      timestamp: new Date(),
       data,
       aggregateId,
-      timestamp: new Date(),
       metadata
     };
   }
 
   /**
-   * Creates a query message object.
-   * @template T
-   * @param {T} type - Query type
-   * @param {QueryParams<T>} params - Query parameters
-   * @param {Record<string, any>} [metadata] - Optional metadata
-   * @returns {IQuery<T>}
+   * Creates a query message.
+   * @template TQueryMap - Query map type
+   * @template T - Query type key
+   * @param {T} type - The query type.
+   * @param {QueryParams<TQueryMap, T>} params - The query parameters.
+   * @param {Record<string, any>} [metadata] - Optional metadata.
+   * @returns {IQuery<TQueryMap, T>} The created query.
    */
-  createQuery<T extends QueryType>(
+  createQuery<TQueryMap extends Record<string, any> = any, T extends QueryType<TQueryMap> = QueryType<TQueryMap>>(
     type: T,
-    params: QueryParams<T>,
+    params: QueryParams<TQueryMap, T>,
     metadata?: Record<string, any>
-  ): IQuery<T> {
+  ): IQuery<TQueryMap, T> {
     return {
       id: this.generateId(),
       type,
-      params,
       timestamp: new Date(),
+      params,
       metadata
     };
   }
 
   /**
-   * Creates an event message object.
-   * @template T
-   * @param {T} type - Event type
-   * @param {EventData<T>} data - Event data
-   * @param {string} aggregateId - Aggregate ID
-   * @param {number} version - Event version
-   * @param {Record<string, any>} [metadata] - Optional metadata
-   * @returns {IEvent<T>}
+   * Creates an event message.
+   * @template TEventMap - Event map type
+   * @template T - Event type key
+   * @param {T} type - The event type.
+   * @param {EventData<TEventMap, T>} data - The event data.
+   * @param {string} aggregateId - The aggregate ID.
+   * @param {number} version - The event version.
+   * @param {Record<string, any>} [metadata] - Optional metadata.
+   * @returns {IEvent<TEventMap, T>} The created event.
    */
-  createEvent<T extends EventType>(
+  createEvent<TEventMap extends Record<string, any> = any, T extends EventType<TEventMap> = EventType<TEventMap>>(
     type: T,
-    data: EventData<T>,
+    data: EventData<TEventMap, T>,
     aggregateId: string,
     version: number,
     metadata?: Record<string, any>
-  ): IEvent<T> {
+  ): IEvent<TEventMap, T> {
     return {
       id: this.generateId(),
       type,
+      timestamp: new Date(),
       data,
       aggregateId,
       version,
-      timestamp: new Date(),
       metadata
     };
+  }
+
+  /**
+   * Generates a unique message ID.
+   * @returns {string} A unique message ID.
+   */
+  private generateId(): string {
+    return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }

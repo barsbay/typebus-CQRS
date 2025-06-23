@@ -21,33 +21,34 @@ import { TypeBus } from '../core/TypeBus';
 export class TypedCommandBuilder {
   /**
    * Creates and registers a command handler.
-   * @template T
-   * @param {TypeBus} bus - The TypeBus-CQRS instance.
+   * @template TCommandMap - Command map type
+   * @template T - Command type key
+   * @param {TypeBus<TCommandMap, any, any>} bus - The TypeBus-CQRS instance.
    * @param {T} commandType - The command type.
-   * @param {(data: CommandData<T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<T>>} handlerLogic - The handler logic.
+   * @param {(data: CommandData<TCommandMap, T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<TCommandMap, T>>} handlerLogic - The handler logic.
    * @returns {object} Command executor and handler meta.
    */
-  static create<T extends CommandType>(
-    bus: TypeBus,
+  static create<TCommandMap extends Record<string, any> = any, T extends CommandType<TCommandMap> = CommandType<TCommandMap>>(
+    bus: TypeBus<TCommandMap, any, any>,
     commandType: T,
     handlerLogic: (
-      data: CommandData<T>,
+      data: CommandData<TCommandMap, T>,
       aggregateId: string,
       metadata?: Record<string, any>
-    ) => Promise<CommandResult<T>>
+    ) => Promise<CommandResult<TCommandMap, T>>
   ) {
-    const handler: IMessageHandler<ICommand<T>, CommandResult<T>> = {
-      async handle(command: ICommand<T>): Promise<CommandResult<T>> {
+    const handler: IMessageHandler<ICommand<TCommandMap, T>, CommandResult<TCommandMap, T>> = {
+      async handle(command: ICommand<TCommandMap, T>): Promise<CommandResult<TCommandMap, T>> {
         return await handlerLogic(command.data, command.aggregateId, command.metadata);
       }
     };
     bus.registerCommandHandler(commandType, handler);
     return {
       async execute(
-        data: CommandData<T>,
+        data: CommandData<TCommandMap, T>,
         aggregateId: string,
         metadata?: Record<string, any>
-      ): Promise<CommandResult<T>> {
+      ): Promise<CommandResult<TCommandMap, T>> {
         return await bus.executeCommand(commandType, data, aggregateId, metadata);
       },
       type: commandType,
@@ -62,31 +63,32 @@ export class TypedCommandBuilder {
 export class TypedQueryBuilder {
   /**
    * Creates and registers a query handler.
-   * @template T
-   * @param {TypeBus} bus - The TypeBus-CQRS instance.
+   * @template TQueryMap - Query map type
+   * @template T - Query type key
+   * @param {TypeBus<any, TQueryMap, any>} bus - The TypeBus-CQRS instance.
    * @param {T} queryType - The query type.
-   * @param {(params: QueryParams<T>, metadata?: Record<string, any>) => Promise<QueryResult<T>>} handlerLogic - The handler logic.
+   * @param {(params: QueryParams<TQueryMap, T>, metadata?: Record<string, any>) => Promise<QueryResult<TQueryMap, T>>} handlerLogic - The handler logic.
    * @returns {object} Query executor and handler meta.
    */
-  static create<T extends QueryType>(
-    bus: TypeBus,
+  static create<TQueryMap extends Record<string, any> = any, T extends QueryType<TQueryMap> = QueryType<TQueryMap>>(
+    bus: TypeBus<any, TQueryMap, any>,
     queryType: T,
     handlerLogic: (
-      params: QueryParams<T>,
+      params: QueryParams<TQueryMap, T>,
       metadata?: Record<string, any>
-    ) => Promise<QueryResult<T>>
+    ) => Promise<QueryResult<TQueryMap, T>>
   ) {
-    const handler: IMessageHandler<IQuery<T>, QueryResult<T>> = {
-      async handle(query: IQuery<T>): Promise<QueryResult<T>> {
+    const handler: IMessageHandler<IQuery<TQueryMap, T>, QueryResult<TQueryMap, T>> = {
+      async handle(query: IQuery<TQueryMap, T>): Promise<QueryResult<TQueryMap, T>> {
         return await handlerLogic(query.params, query.metadata);
       }
     };
     bus.registerQueryHandler(queryType, handler);
     return {
       async execute(
-        params: QueryParams<T>,
+        params: QueryParams<TQueryMap, T>,
         metadata?: Record<string, any>
-      ): Promise<QueryResult<T>> {
+      ): Promise<QueryResult<TQueryMap, T>> {
         return await bus.executeQuery(queryType, params, metadata);
       },
       type: queryType,
@@ -101,31 +103,32 @@ export class TypedQueryBuilder {
 export class TypedEventBuilder {
   /**
    * Creates and registers an event handler.
-   * @template T
-   * @param {TypeBus} bus - The TypeBus-CQRS instance.
+   * @template TEventMap - Event map type
+   * @template T - Event type key
+   * @param {TypeBus<any, any, TEventMap>} bus - The TypeBus-CQRS instance.
    * @param {T} eventType - The event type.
-   * @param {(data: EventData<T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} handlerLogic - The handler logic.
+   * @param {(data: EventData<TEventMap, T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} handlerLogic - The handler logic.
    * @returns {object} Event publisher and handler meta.
    */
-  static create<T extends EventType>(
-    bus: TypeBus,
+  static create<TEventMap extends Record<string, any> = any, T extends EventType<TEventMap> = EventType<TEventMap>>(
+    bus: TypeBus<any, any, TEventMap>,
     eventType: T,
     handlerLogic: (
-      data: EventData<T>,
+      data: EventData<TEventMap, T>,
       aggregateId: string,
       version: number,
       metadata?: Record<string, any>
     ) => Promise<void>
   ) {
-    const handler: IMessageHandler<IEvent<T>, void> = {
-      async handle(event: IEvent<T>): Promise<void> {
+    const handler: IMessageHandler<IEvent<TEventMap, T>, void> = {
+      async handle(event: IEvent<TEventMap, T>): Promise<void> {
         return await handlerLogic(event.data, event.aggregateId, event.version, event.metadata);
       }
     };
     bus.registerEventHandler(eventType, handler);
     return {
       async publish(
-        data: EventData<T>,
+        data: EventData<TEventMap, T>,
         aggregateId: string,
         version: number,
         metadata?: Record<string, any>
@@ -141,31 +144,35 @@ export class TypedEventBuilder {
 /** ================================================================================
  * Builder for creating a batch of related commands, queries, and events.
     ================================================================================  */
-export class BatchBuilder {
+export class BatchBuilder<
+  TCommandMap extends Record<string, any> = any,
+  TQueryMap extends Record<string, any> = any,
+  TEventMap extends Record<string, any> = any
+> {
   private items: Array<{
     type: 'command' | 'query' | 'event';
     executor: any;
     name: string;
   }> = [];
 
-  constructor(private bus: TypeBus) {}
+  constructor(private bus: TypeBus<TCommandMap, TQueryMap, TEventMap>) {}
 
   /**
    * Adds a command to the batch.
-   * @template T
+   * @template T - Command type key
    * @param {string} name - The name of the command.
    * @param {T} commandType - The command type.
-   * @param {(data: CommandData<T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<T>>} handlerLogic - The handler logic.
-   * @returns {BatchBuilder}
+   * @param {(data: CommandData<TCommandMap, T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<TCommandMap, T>>} handlerLogic - The handler logic.
+   * @returns {BatchBuilder<TCommandMap, TQueryMap, TEventMap>}
    */
-  addCommand<T extends CommandType>(
+  addCommand<T extends CommandType<TCommandMap>>(
     name: string,
     commandType: T,
     handlerLogic: (
-      data: CommandData<T>,
+      data: CommandData<TCommandMap, T>,
       aggregateId: string,
       metadata?: Record<string, any>
-    ) => Promise<CommandResult<T>>
+    ) => Promise<CommandResult<TCommandMap, T>>
   ) {
     const executor = TypedCommandBuilder.create(this.bus, commandType, handlerLogic);
     this.items.push({ type: 'command', executor, name });
@@ -174,19 +181,19 @@ export class BatchBuilder {
 
   /**
    * Adds a query to the batch.
-   * @template T
+   * @template T - Query type key
    * @param {string} name - The name of the query.
    * @param {T} queryType - The query type.
-   * @param {(params: QueryParams<T>, metadata?: Record<string, any>) => Promise<QueryResult<T>>} handlerLogic - The handler logic.
-   * @returns {BatchBuilder}
+   * @param {(params: QueryParams<TQueryMap, T>, metadata?: Record<string, any>) => Promise<QueryResult<TQueryMap, T>>} handlerLogic - The handler logic.
+   * @returns {BatchBuilder<TCommandMap, TQueryMap, TEventMap>}
    */
-  addQuery<T extends QueryType>(
+  addQuery<T extends QueryType<TQueryMap>>(
     name: string,
     queryType: T,
     handlerLogic: (
-      params: QueryParams<T>,
+      params: QueryParams<TQueryMap, T>,
       metadata?: Record<string, any>
-    ) => Promise<QueryResult<T>>
+    ) => Promise<QueryResult<TQueryMap, T>>
   ) {
     const executor = TypedQueryBuilder.create(this.bus, queryType, handlerLogic);
     this.items.push({ type: 'query', executor, name });
@@ -195,17 +202,17 @@ export class BatchBuilder {
 
   /**
    * Adds an event handler to the batch.
-   * @template T
+   * @template T - Event type key
    * @param {string} name - The name of the event handler.
    * @param {T} eventType - The event type.
-   * @param {(data: EventData<T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} handlerLogic - The handler logic.
-   * @returns {BatchBuilder}
+   * @param {(data: EventData<TEventMap, T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} handlerLogic - The handler logic.
+   * @returns {BatchBuilder<TCommandMap, TQueryMap, TEventMap>}
    */
-  addEventHandler<T extends EventType>(
+  addEventHandler<T extends EventType<TEventMap>>(
     name: string,
     eventType: T,
     handlerLogic: (
-      data: EventData<T>,
+      data: EventData<TEventMap, T>,
       aggregateId: string,
       version: number,
       metadata?: Record<string, any>
@@ -218,37 +225,41 @@ export class BatchBuilder {
 
   /**
    * Builds the batch and returns an object with all executors.
-   * @returns {Record<string, any>}
+   * @returns {object}
    */
   build() {
     const result: Record<string, any> = {};
-    for (const item of this.items) {
+    this.items.forEach(item => {
       result[item.name] = item.executor;
-    }
+    });
     return result;
   }
 }
 
 /** ================================================================================
- * Fluent builder for chaining command, query, and event handler creation.
+ * Fluent API builder for TypeBus-CQRS.
     ================================================================================  */
-export class FluentBuilder {
-  constructor(private bus: TypeBus) {}
+export class FluentBuilder<
+  TCommandMap extends Record<string, any> = any,
+  TQueryMap extends Record<string, any> = any,
+  TEventMap extends Record<string, any> = any
+> {
+  constructor(private bus: TypeBus<TCommandMap, TQueryMap, TEventMap>) {}
 
   /**
-   * Starts a command builder chain.
-   * @template T
+   * Creates a command with fluent API.
+   * @template T - Command type key
    * @param {T} commandType - The command type.
-   * @returns {object}
+   * @returns {object} Fluent command builder.
    */
-  command<T extends CommandType>(commandType: T) {
+  command<T extends CommandType<TCommandMap>>(commandType: T) {
     return {
       handle: (
         handlerLogic: (
-          data: CommandData<T>,
+          data: CommandData<TCommandMap, T>,
           aggregateId: string,
           metadata?: Record<string, any>
-        ) => Promise<CommandResult<T>>
+        ) => Promise<CommandResult<TCommandMap, T>>
       ) => {
         return TypedCommandBuilder.create(this.bus, commandType, handlerLogic);
       }
@@ -256,18 +267,18 @@ export class FluentBuilder {
   }
 
   /**
-   * Starts a query builder chain.
-   * @template T
+   * Creates a query with fluent API.
+   * @template T - Query type key
    * @param {T} queryType - The query type.
-   * @returns {object}
+   * @returns {object} Fluent query builder.
    */
-  query<T extends QueryType>(queryType: T) {
+  query<T extends QueryType<TQueryMap>>(queryType: T) {
     return {
       handle: (
         handlerLogic: (
-          params: QueryParams<T>,
+          params: QueryParams<TQueryMap, T>,
           metadata?: Record<string, any>
-        ) => Promise<QueryResult<T>>
+        ) => Promise<QueryResult<TQueryMap, T>>
       ) => {
         return TypedQueryBuilder.create(this.bus, queryType, handlerLogic);
       }
@@ -275,16 +286,16 @@ export class FluentBuilder {
   }
 
   /**
-   * Starts an event builder chain.
-   * @template T
+   * Creates an event handler with fluent API.
+   * @template T - Event type key
    * @param {T} eventType - The event type.
-   * @returns {object}
+   * @returns {object} Fluent event builder.
    */
-  event<T extends EventType>(eventType: T) {
+  event<T extends EventType<TEventMap>>(eventType: T) {
     return {
       handle: (
         handlerLogic: (
-          data: EventData<T>,
+          data: EventData<TEventMap, T>,
           aggregateId: string,
           version: number,
           metadata?: Record<string, any>
@@ -296,63 +307,70 @@ export class FluentBuilder {
   }
 
   /**
-   * Starts a batch builder chain.
-   * @returns {BatchBuilder}
+   * Creates a batch builder.
+   * @returns {BatchBuilder<TCommandMap, TQueryMap, TEventMap>}
    */
   batch() {
     return new BatchBuilder(this.bus);
   }
 }
 
-/** ================================================================================
- * Utility function to create a command builder.
- * @template T
- * @param {TypeBus} bus - The TypeBus-CQRS instance.
+// ================================================================================
+// Factory Functions
+// ================================================================================
+
+/**
+ * Creates and registers a command handler.
+ * @template TCommandMap - Command map type
+ * @template T - Command type key
+ * @param {TypeBus<TCommandMap, any, any>} bus - The TypeBus-CQRS instance.
  * @param {T} commandType - The command type.
- * @param {(data: CommandData<T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<T>>} handlerLogic - The handler logic.
- * @returns {object}
-   ================================================================================ */
-export function createCommand<T extends CommandType>(
-  bus: TypeBus,
+ * @param {(data: CommandData<TCommandMap, T>, aggregateId: string, metadata?: Record<string, any>) => Promise<CommandResult<TCommandMap, T>>} handlerLogic - The handler logic.
+ * @returns {object} Command executor.
+ */
+export function createCommand<TCommandMap extends Record<string, any> = any, T extends CommandType<TCommandMap> = CommandType<TCommandMap>>(
+  bus: TypeBus<TCommandMap, any, any>,
   commandType: T,
   handlerLogic: (
-    data: CommandData<T>,
+    data: CommandData<TCommandMap, T>,
     aggregateId: string,
     metadata?: Record<string, any>
-  ) => Promise<CommandResult<T>>
+  ) => Promise<CommandResult<TCommandMap, T>>
 ) {
   return TypedCommandBuilder.create(bus, commandType, handlerLogic);
 }
 
-/** ================================================================================
- * Utility function to create a query builder.
- * @template T
- * @param {TypeBus} bus - The TypeBus-CQRS instance.
+/**
+ * Creates and registers a query handler.
+ * @template TQueryMap - Query map type
+ * @template T - Query type key
+ * @param {TypeBus<any, TQueryMap, any>} bus - The TypeBus-CQRS instance.
  * @param {T} queryType - The query type.
- * @param {(params: QueryParams<T>, metadata?: Record<string, any>) => Promise<QueryResult<T>>} handlerLogic - The handler logic.
- * @returns {object}
-   ================================================================================ */
-export function createQuery<T extends QueryType>(
-  bus: TypeBus,
+ * @param {(params: QueryParams<TQueryMap, T>, metadata?: Record<string, any>) => Promise<QueryResult<TQueryMap, T>>} handlerLogic - The handler logic.
+ * @returns {object} Query executor.
+ */
+export function createQuery<TQueryMap extends Record<string, any> = any, T extends QueryType<TQueryMap> = QueryType<TQueryMap>>(
+  bus: TypeBus<any, TQueryMap, any>,
   queryType: T,
-  handlerLogic: (params: QueryParams<T>, metadata?: Record<string, any>) => Promise<QueryResult<T>>
+  handlerLogic: (params: QueryParams<TQueryMap, T>, metadata?: Record<string, any>) => Promise<QueryResult<TQueryMap, T>>
 ) {
   return TypedQueryBuilder.create(bus, queryType, handlerLogic);
 }
 
-/** ================================================================================
- * Utility function to create an event handler builder.
- * @template T
- * @param {TypeBus} bus - The TypeBus-CQRS instance.
+/**
+ * Creates and registers an event handler.
+ * @template TEventMap - Event map type
+ * @template T - Event type key
+ * @param {TypeBus<any, any, TEventMap>} bus - The TypeBus-CQRS instance.
  * @param {T} eventType - The event type.
- * @param {(data: EventData<T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} handlerLogic - The handler logic.
- * @returns {object}
-   ================================================================================  */
-export function createEventHandler<T extends EventType>(
-  bus: TypeBus,
+ * @param {(data: EventData<TEventMap, T>, aggregateId: string, version: number, metadata?: Record<string, any>) => Promise<void>} handlerLogic - The handler logic.
+ * @returns {object} Event publisher.
+ */
+export function createEventHandler<TEventMap extends Record<string, any> = any, T extends EventType<TEventMap> = EventType<TEventMap>>(
+  bus: TypeBus<any, any, TEventMap>,
   eventType: T,
   handlerLogic: (
-    data: EventData<T>,
+    data: EventData<TEventMap, T>,
     aggregateId: string,
     version: number,
     metadata?: Record<string, any>
@@ -361,11 +379,18 @@ export function createEventHandler<T extends EventType>(
   return TypedEventBuilder.create(bus, eventType, handlerLogic);
 }
 
-/** ================================================================================
- * Utility function to create a fluent builder for TypeBus-CQRS.
- * @param {TypeBus} bus - The TypeBus-CQRS instance.
- * @returns {FluentBuilder}
-   ================================================================================  */
-export function createFluentBuilder(bus: TypeBus) {
+/**
+ * Creates a fluent API builder.
+ * @template TCommandMap - Command map type
+ * @template TQueryMap - Query map type
+ * @template TEventMap - Event map type
+ * @param {TypeBus<TCommandMap, TQueryMap, TEventMap>} bus - The TypeBus-CQRS instance.
+ * @returns {FluentBuilder<TCommandMap, TQueryMap, TEventMap>}
+ */
+export function createFluentBuilder<
+  TCommandMap extends Record<string, any> = any,
+  TQueryMap extends Record<string, any> = any,
+  TEventMap extends Record<string, any> = any
+>(bus: TypeBus<TCommandMap, TQueryMap, TEventMap>) {
   return new FluentBuilder(bus);
 }

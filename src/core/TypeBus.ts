@@ -19,12 +19,19 @@ import { MessageFactory } from './MessageFactory';
 /**
  * Main class of the TypeBus-CQRS library. Implements the IMessageBus interface.
  * Handles registration and execution of commands, queries, and events with middleware support.
- * @implements {IMessageBus}
+ * @template TCommandMap - Command map type
+ * @template TQueryMap - Query map type
+ * @template TEventMap - Event map type
+ * @implements {IMessageBus<TCommandMap, TQueryMap, TEventMap>}
  */
-export class TypeBus implements IMessageBus {
-  private commandHandlers = new Map<CommandType, IMessageHandler>();
-  private queryHandlers = new Map<QueryType, IMessageHandler>();
-  private eventHandlers = new Map<EventType, IMessageHandler[]>();
+export class TypeBus<
+  TCommandMap extends Record<string, any> = any,
+  TQueryMap extends Record<string, any> = any,
+  TEventMap extends Record<string, any> = any
+> implements IMessageBus<TCommandMap, TQueryMap, TEventMap> {
+  private commandHandlers = new Map<string, IMessageHandler>();
+  private queryHandlers = new Map<string, IMessageHandler>();
+  private eventHandlers = new Map<string, IMessageHandler[]>();
   private middlewares: IMiddleware[] = [];
   private messageFactory = new MessageFactory();
   private config: Required<TypeBusConfig>;
@@ -68,11 +75,11 @@ export class TypeBus implements IMessageBus {
    * Registers a command handler for a specific command type.
    * @template T
    * @param {T} commandType
-   * @param {IMessageHandler<any, CommandResult<T>>} handler
+   * @param {IMessageHandler<any, CommandResult<TCommandMap, T>>} handler
    */
-  registerCommandHandler<T extends CommandType>(
+  registerCommandHandler<T extends CommandType<TCommandMap>>(
     commandType: T,
-    handler: IMessageHandler<any, CommandResult<T>>
+    handler: IMessageHandler<any, CommandResult<TCommandMap, T>>
   ): void {
     if (this.commandHandlers.has(commandType)) {
       throw new Error(`Command handler for '${commandType}' already registered`);
@@ -88,11 +95,11 @@ export class TypeBus implements IMessageBus {
    * Registers a query handler for a specific query type.
    * @template T
    * @param {T} queryType
-   * @param {IMessageHandler<any, QueryResult<T>>} handler
+   * @param {IMessageHandler<any, QueryResult<TQueryMap, T>>} handler
    */
-  registerQueryHandler<T extends QueryType>(
+  registerQueryHandler<T extends QueryType<TQueryMap>>(
     queryType: T,
-    handler: IMessageHandler<any, QueryResult<T>>
+    handler: IMessageHandler<any, QueryResult<TQueryMap, T>>
   ): void {
     if (this.queryHandlers.has(queryType)) {
       throw new Error(`Query handler for '${queryType}' already registered`);
@@ -110,7 +117,7 @@ export class TypeBus implements IMessageBus {
    * @param {T} eventType
    * @param {IMessageHandler<any, void>} handler
    */
-  registerEventHandler<T extends EventType>(
+  registerEventHandler<T extends EventType<TEventMap>>(
     eventType: T,
     handler: IMessageHandler<any, void>
   ): void {
@@ -133,17 +140,17 @@ export class TypeBus implements IMessageBus {
    * Executes a command message.
    * @template T
    * @param {T} type
-   * @param {CommandData<T>} data
+   * @param {CommandData<TCommandMap, T>} data
    * @param {string} aggregateId
    * @param {Record<string, any>} [metadata]
-   * @returns {Promise<CommandResult<T>>}
+   * @returns {Promise<CommandResult<TCommandMap, T>>}
    */
-  async executeCommand<T extends CommandType>(
+  async executeCommand<T extends CommandType<TCommandMap>>(
     type: T,
-    data: CommandData<T>,
+    data: CommandData<TCommandMap, T>,
     aggregateId: string,
     metadata?: Record<string, any>
-  ): Promise<CommandResult<T>> {
+  ): Promise<CommandResult<TCommandMap, T>> {
     const command = this.messageFactory.createCommand(type, data, aggregateId, metadata);
     const handler = this.commandHandlers.get(type);
     
@@ -155,22 +162,22 @@ export class TypeBus implements IMessageBus {
       command, 
       handler,
       this.config.commandTimeout
-    ) as CommandResult<T>;
+    ) as CommandResult<TCommandMap, T>;
   }
 
   /**
    * Executes a query message.
    * @template T
    * @param {T} type
-   * @param {QueryParams<T>} params
+   * @param {QueryParams<TQueryMap, T>} params
    * @param {Record<string, any>} [metadata]
-   * @returns {Promise<QueryResult<T>>}
+   * @returns {Promise<QueryResult<TQueryMap, T>>}
    */
-  async executeQuery<T extends QueryType>(
+  async executeQuery<T extends QueryType<TQueryMap>>(
     type: T,
-    params: QueryParams<T>,
+    params: QueryParams<TQueryMap, T>,
     metadata?: Record<string, any>
-  ): Promise<QueryResult<T>> {
+  ): Promise<QueryResult<TQueryMap, T>> {
     const query = this.messageFactory.createQuery(type, params, metadata);
     const handler = this.queryHandlers.get(type);
     
@@ -182,22 +189,22 @@ export class TypeBus implements IMessageBus {
       query, 
       handler,
       this.config.queryTimeout
-    ) as QueryResult<T>;
+    ) as QueryResult<TQueryMap, T>;
   }
 
   /**
    * Publishes an event message to all registered handlers.
    * @template T
    * @param {T} type
-   * @param {EventData<T>} data
+   * @param {EventData<TEventMap, T>} data
    * @param {string} aggregateId
    * @param {number} version
    * @param {Record<string, any>} [metadata]
    * @returns {Promise<void>}
    */
-  async publishEvent<T extends EventType>(
+  async publishEvent<T extends EventType<TEventMap>>(
     type: T,
-    data: EventData<T>,
+    data: EventData<TEventMap, T>,
     aggregateId: string,
     version: number,
     metadata?: Record<string, any>
@@ -205,48 +212,60 @@ export class TypeBus implements IMessageBus {
     const event = this.messageFactory.createEvent(type, data, aggregateId, version, metadata);
     const handlers = this.eventHandlers.get(type) || [];
 
-    if (handlers.length === 0 && this.config.enableLogging) {
-      console.warn(`⚠️ No handlers registered for event: ${type}`);
+    if (handlers.length === 0) {
+      if (this.config.enableLogging && this.config.logLevel === 'debug') {
+        console.log(`📢 No handlers registered for event: ${type}`);
+      }
+      return;
     }
 
-    // Выполняем все обработчики событий параллельно
-    await Promise.all(
-      handlers.map(handler => 
-        this.executeWithMiddleware(event, handler, this.config.commandTimeout)
-      )
+    // Execute all handlers in parallel
+    const promises = handlers.map(handler => 
+      this.executeWithMiddleware(event, handler, this.config.commandTimeout)
     );
+
+    await Promise.all(promises);
   }
 
   // ================================================================================
   // Private Methods
   // ================================================================================
 
+  /**
+   * Executes a message through the middleware pipeline.
+   * @template T, R
+   * @param {T} message
+   * @param {IMessageHandler<T, R>} handler
+   * @param {number} timeout
+   * @returns {Promise<R>}
+   */
   private async executeWithMiddleware<T extends IMessage, R>(
     message: T,
     handler: IMessageHandler<T, R>,
     timeout: number
   ): Promise<R> {
-    let index = 0;
-    
+    // Create middleware chain
     const dispatch = async (msg: T): Promise<R> => {
-      if (index < this.middlewares.length) {
-        const middleware = this.middlewares[index++];
-        return await middleware.execute(msg, dispatch);
-      }
       return await handler.handle(msg);
     };
 
-    // Применяем таймаут
-    return await this.withTimeout(dispatch(message), timeout, message.type);
+    // Apply middleware in reverse order
+    let chain = dispatch;
+    for (let i = this.middlewares.length - 1; i >= 0; i--) {
+      const middleware = this.middlewares[i];
+      const next = chain;
+      chain = async (msg: T) => middleware.execute(msg, next);
+    }
+
+    return await this.withTimeout(chain(message), timeout, message.type);
   }
 
   /**
-   * Executes a promise with a timeout. If the promise does not resolve within the specified time, throws an error.
-   * Ensures the timeout is cleared to avoid open handles.
+   * Executes a promise with a timeout.
    * @template T
-   * @param {Promise<T>} promise - The promise to execute
-   * @param {number} timeoutMs - Timeout in milliseconds
-   * @param {string} operationType - Operation type for error message
+   * @param {Promise<T>} promise
+   * @param {number} timeoutMs
+   * @param {string} operationType
    * @returns {Promise<T>}
    */
   private async withTimeout<T>(
@@ -254,24 +273,13 @@ export class TypeBus implements IMessageBus {
     timeoutMs: number, 
     operationType: string
   ): Promise<T> {
-    let timer: NodeJS.Timeout;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timer = setTimeout(() => {
-        reject(new Error(`Operation '${operationType}' timed out after ${timeoutMs}ms`));
+      setTimeout(() => {
+        reject(new Error(`${operationType} timed out after ${timeoutMs}ms`));
       }, timeoutMs);
     });
 
-    // Clear the timer after any operation completes
-    return Promise.race([promise, timeoutPromise]).then(
-      (result) => {
-        clearTimeout(timer);
-        return result;
-      },
-      (err) => {
-        clearTimeout(timer);
-        throw err;
-      }
-    );
+    return Promise.race([promise, timeoutPromise]);
   }
 
   // ================================================================================
@@ -279,21 +287,21 @@ export class TypeBus implements IMessageBus {
   // ================================================================================
 
   /**
-   * Removes all handlers and middleware from the bus.
+   * Clears all registered handlers and middleware.
    */
   clear(): void {
     this.commandHandlers.clear();
     this.queryHandlers.clear();
     this.eventHandlers.clear();
-    this.middlewares.length = 0;
+    this.middlewares = [];
     
     if (this.config.enableLogging) {
-      console.log('🧹 TypeBus cleared');
+      console.log('🧹 TypeBus cleared all handlers and middleware');
     }
   }
 
   /**
-   * Returns statistics about the current bus state.
+   * Gets statistics about the bus.
    * @returns {object}
    */
   getStats() {
@@ -302,12 +310,12 @@ export class TypeBus implements IMessageBus {
       queryHandlers: this.queryHandlers.size,
       eventHandlers: Array.from(this.eventHandlers.values()).reduce((sum, handlers) => sum + handlers.length, 0),
       middleware: this.middlewares.length,
-      config: this.config
+      totalHandlers: this.commandHandlers.size + this.queryHandlers.size + Array.from(this.eventHandlers.values()).reduce((sum, handlers) => sum + handlers.length, 0)
     };
   }
 
   /**
-   * Returns a list of all registered handler types (for debugging).
+   * Gets all registered handlers.
    * @returns {object}
    */
   getRegisteredHandlers() {

@@ -1,8 +1,8 @@
 /**
- * Command map for all supported commands in the system.
- * @typedef {Object} CommandMap
+ * Base command map interface that can be extended by users.
+ * @typedef {Object} BaseCommandMap
  */
-export interface CommandMap {
+export interface BaseCommandMap {
   // User Domain Commands
   'User.CreateUser': {
     data: { name: string; email: string; password: string };
@@ -38,10 +38,10 @@ export interface CommandMap {
 }
 
 /**
- * Query map for all supported queries in the system.
- * @typedef {Object} QueryMap
+ * Base query map interface that can be extended by users.
+ * @typedef {Object} BaseQueryMap
  */
-export interface QueryMap {
+export interface BaseQueryMap {
   // User Domain Queries
   'User.GetUser': {
     params: { userId: string };
@@ -103,10 +103,10 @@ export interface QueryMap {
 }
 
 /**
- * Event map for all supported events in the system.
- * @typedef {Object} EventMap
+ * Base event map interface that can be extended by users.
+ * @typedef {Object} BaseEventMap
  */
-export interface EventMap {
+export interface BaseEventMap {
   // User Domain Events
   'User.Created': {
     data: { name: string; email: string };
@@ -145,75 +145,101 @@ export interface EventMap {
 }
 
 /**
- * Utility type for all command types.
- * @typedef {keyof CommandMap} CommandType
+ * Default command map (backward compatibility).
+ * @typedef {BaseCommandMap} CommandMap
  */
-export type CommandType = keyof CommandMap;
+export type CommandMap = BaseCommandMap;
 
 /**
- * Utility type for all query types.
- * @typedef {keyof QueryMap} QueryType
+ * Default query map (backward compatibility).
+ * @typedef {BaseQueryMap} QueryMap
  */
-export type QueryType = keyof QueryMap;
+export type QueryMap = BaseQueryMap;
 
 /**
- * Utility type for all event types.
- * @typedef {keyof EventMap} EventType
+ * Default event map (backward compatibility).
+ * @typedef {BaseEventMap} EventMap
  */
-export type EventType = keyof EventMap;
+export type EventMap = BaseEventMap;
+
+/**
+ * Generic command type that can be extended.
+ * @template T - Extended command map type
+ * @typedef {keyof T & string} CommandType
+ */
+export type CommandType<T = CommandMap> = keyof T & string;
+
+/**
+ * Generic query type that can be extended.
+ * @template T - Extended query map type
+ * @typedef {keyof T & string} QueryType
+ */
+export type QueryType<T = QueryMap> = keyof T & string;
+
+/**
+ * Generic event type that can be extended.
+ * @template T - Extended event map type
+ * @typedef {keyof T & string} EventType
+ */
+export type EventType<T = EventMap> = keyof T & string;
 
 /**
  * Extracts the data type for a given command type.
- * @template T
- * @typedef {CommandMap[T]['data']} CommandData
+ * @template T - Command map type
+ * @template K - Command type key
+ * @typedef {T[K]['data']} CommandData
  */
-export type CommandData<T extends CommandType> = CommandMap[T]['data'];
+export type CommandData<T extends Record<string, any> = CommandMap, K extends keyof T & string = keyof T & string> = T[K]['data'];
 
 /**
  * Extracts the result type for a given command type.
- * @template T
- * @typedef {CommandMap[T]['result']} CommandResult
+ * @template T - Command map type
+ * @template K - Command type key
+ * @typedef {T[K]['result']} CommandResult
  */
-export type CommandResult<T extends CommandType> = CommandMap[T]['result'];
+export type CommandResult<T extends Record<string, any> = CommandMap, K extends keyof T & string = keyof T & string> = T[K]['result'];
 
 /**
  * Extracts the params type for a given query type.
- * @template T
- * @typedef {QueryMap[T]['params']} QueryParams
+ * @template T - Query map type
+ * @template K - Query type key
+ * @typedef {T[K]['params']} QueryParams
  */
-export type QueryParams<T extends QueryType> = QueryMap[T]['params'];
+export type QueryParams<T extends Record<string, any> = QueryMap, K extends keyof T & string = keyof T & string> = T[K]['params'];
 
 /**
  * Extracts the result type for a given query type.
- * @template T
- * @typedef {QueryMap[T]['result']} QueryResult
+ * @template T - Query map type
+ * @template K - Query type key
+ * @typedef {T[K]['result']} QueryResult
  */
-export type QueryResult<T extends QueryType> = QueryMap[T]['result'];
+export type QueryResult<T extends Record<string, any> = QueryMap, K extends keyof T & string = keyof T & string> = T[K]['result'];
 
 /**
  * Extracts the data type for a given event type.
- * @template T
- * @typedef {EventMap[T]['data']} EventData
+ * @template T - Event map type
+ * @template K - Event type key
+ * @typedef {T[K]['data']} EventData
  */
-export type EventData<T extends EventType> = EventMap[T]['data'];
+export type EventData<T extends Record<string, any> = EventMap, K extends keyof T & string = keyof T & string> = T[K]['data'];
 
 /**
- * Utility type for extending the command map.
- * @template T
+ * Utility type to extend the command map with custom commands.
+ * @template T - Additional command map to merge
  * @typedef {CommandMap & T} ExtendCommandMap
  */
 export type ExtendCommandMap<T extends Record<string, any>> = CommandMap & T;
 
 /**
- * Utility type for extending the query map.
- * @template T
+ * Utility type to extend the query map with custom queries.
+ * @template T - Additional query map to merge
  * @typedef {QueryMap & T} ExtendQueryMap
  */
 export type ExtendQueryMap<T extends Record<string, any>> = QueryMap & T;
 
 /**
- * Utility type for extending the event map.
- * @template T
+ * Utility type to extend the event map with custom events.
+ * @template T - Additional event map to merge
  * @typedef {EventMap & T} ExtendEventMap
  */
 export type ExtendEventMap<T extends Record<string, any>> = EventMap & T;

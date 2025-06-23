@@ -25,6 +25,7 @@
 - ✅ **Auto-registration** on creation
 - ✅ **Full type safety** with TypeScript
 - ✅ **Minimal boilerplate** - 3x less code
+- ✅ **Extensible types** - define your own commands/queries/events
 
 ### 🚀 Ready for Use:
 
@@ -34,6 +35,7 @@
 - ✅ Full test coverage
 - ✅ Production ready
 - ✅ Framework agnostic
+- ✅ Extensible type system
 
 ## 🚀 Quick Start
 
@@ -91,6 +93,121 @@ async function example() {
 ```
 
 That's it! **No separate classes, no manual registration, no complex setup.**
+
+## 🔧 Extensible Type System
+
+TypeBus-CQRS now supports **extensible types**, allowing you to define your own command, query, and event types without being limited by built-in types.
+
+### Define Your Custom Types
+
+```typescript
+import { createTypeBus, createCommand, createQuery, ExtendCommandMap, ExtendQueryMap } from 'typebus-cqrs';
+
+// Define your custom command types
+interface CustomCommandMap {
+  'Product.CreateProduct': {
+    data: { 
+      name: string; 
+      price: number; 
+      category: string; 
+    };
+    aggregateId: string;
+    result: { productId: string; sku: string; events: string[] };
+  };
+  'Product.UpdatePrice': {
+    data: { 
+      newPrice: number; 
+      reason: string;
+    };
+    aggregateId: string;
+    result: { success: boolean; oldPrice: number; newPrice: number };
+  };
+}
+
+// Define your custom query types
+interface CustomQueryMap {
+  'Product.GetProduct': {
+    params: { productId: string };
+    result: { 
+      id: string; 
+      name: string; 
+      price: number; 
+      category: string; 
+    };
+  };
+  'Product.SearchProducts': {
+    params: { 
+      searchTerm?: string; 
+      category?: string; 
+      minPrice?: number; 
+      maxPrice?: number;
+    };
+    result: { 
+      products: Array<{ id: string; name: string; price: number }>;
+      total: number;
+    };
+  };
+}
+
+// Extend the built-in types with your custom types
+type ExtendedCommandMap = ExtendCommandMap<CustomCommandMap>;
+type ExtendedQueryMap = ExtendQueryMap<CustomQueryMap>;
+
+// Create TypeBus with your extended types
+const bus = createTypeBus<ExtendedCommandMap, ExtendedQueryMap>();
+
+// Now you can use your custom types with full type safety!
+const CreateProduct = createCommand(
+  bus,
+  'Product.CreateProduct', // ← TypeScript knows this type!
+  async (data, aggregateId) => {
+    // data is typed as { name: string; price: number; category: string; }
+    const sku = `SKU-${Date.now()}`;
+    return { productId: aggregateId, sku, events: ['Product.Created'] };
+  }
+);
+
+const GetProduct = createQuery(
+  bus,
+  'Product.GetProduct', // ← TypeScript knows this type!
+  async (params) => {
+    // params is typed as { productId: string }
+    return {
+      id: params.productId,
+      name: 'Sample Product',
+      price: 29.99,
+      category: 'Electronics'
+    };
+  }
+);
+
+// Usage with full type safety
+await CreateProduct.execute(
+  { name: 'Laptop', price: 999.99, category: 'Electronics' }, // ← Validated!
+  'prod-123'
+);
+
+const product = await GetProduct.execute({ productId: 'prod-123' }); // ← Validated!
+```
+
+### Alternative: Dynamic Types (Less Type Safety, More Flexibility)
+
+If you prefer more flexibility over strict typing:
+
+```typescript
+const bus = createTypeBus(); // Uses 'any' types
+
+const CreateOrder = createCommand(
+  bus,
+  'Order.CreateOrder' as any, // Use string literals
+  async (data: any, aggregateId: string) => {
+    return { orderId: aggregateId, status: 'pending' };
+  }
+);
+
+// No compile-time type checking, but maximum flexibility
+await CreateOrder.execute({ userId: 'user-123', items: [] }, 'order-456');
+```
 
 ## 📚 Documentation
 
@@ -409,6 +526,7 @@ export class UserService {
 | **Type Safety** | ✅ 9/10 | ✅ 9/10 | ⚠️ 7/10 | ⚠️ 7/10 |
 | **Auto Registration** | ✅ 10/10 | ❌ 5/10 | ❌ 4/10 | ❌ 4/10 |
 | **Learning Curve** | ✅ Easy | ⚠️ Medium | ❌ Hard | ⚠️ Medium |
+| **Extensible Types** | ✅ 10/10 | ❌ 3/10 | ❌ 2/10 | ❌ 3/10 |
 
 ### Before (NestJS CQRS):
 ```typescript
@@ -575,6 +693,11 @@ npm run dev
 #### Advanced Example
 ```bash
 npm run example:advanced
+```
+
+#### Extensible Types Example
+```bash
+npm run example:extensible
 ```
 
 ### 3. Development
